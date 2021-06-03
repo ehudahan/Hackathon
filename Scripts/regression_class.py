@@ -44,6 +44,12 @@ def literal_converter_crew(val):
     return {'gender': pd.NA} if (val == "") or (val == "[]") else literal_eval(val)
 
 
+def columns_to_drop():
+    return ["id", "belongs_to_collection", "genres", "homepage", "original_language", "original_title", "overview",
+            "production_companies", "release_date", "production_countries", "spoken_languages", "status", "tagline", "title",
+            "keywords", "cast", "crew"]
+
+
 def load_data(csv_file):
     """
     get csv file path (training or test set)
@@ -74,11 +80,13 @@ def load_data(csv_file):
 
     # df = pd.get_dummies(df, columns=['original_language'])
 
-    columns_to_drop = ["id", "belongs_to_collection", "genres", "homepage", "original_language", "original_title", "overview",
-            "production_companies", "release_date", "production_countries", "spoken_languages", "status", "tagline", "title",
-            "keywords", "cast", "crew"]
+    return df.drop(columns_to_drop(), axis=1)
 
-    return df.drop(columns_to_drop, axis=1)
+
+def basic_load_data(csv_file):
+    df = pd.read_csv(csv_file).dropna()
+    return df[['budget', 'vote_count', 'runtime']], df['revenue'], df['vote_average']
+
 
 
 if __name__ == '__main__':
