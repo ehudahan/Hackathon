@@ -7,6 +7,7 @@ import numpy as np
 import plotly.express as px
 import matplotlib.pyplot as plt
 
+
 def load_y(csv_file, colname):
     return pd.read_csv(csv_file)[colname]
 

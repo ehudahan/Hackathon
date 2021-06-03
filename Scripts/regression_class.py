@@ -2,7 +2,9 @@ import pandas as pd
 import json
 from sklearn.linear_model import LinearRegression
 from ast import literal_eval
-
+import seaborn as sn
+import matplotlib.pyplot as plt
+import re
 
 def split_data(filename):
     """
@@ -41,7 +43,7 @@ def literal_converter_lan(val):
 
 
 def literal_converter_crew(val):
-    return {'gender': pd.NA} if (val == "") or (val == "[]") else literal_eval(val)
+    return {'name': pd.NA} if (val == "") or (val == "[]") else literal_eval(val)
 
 
 def columns_to_drop():
@@ -50,10 +52,33 @@ def columns_to_drop():
             "keywords", "cast", "crew"]
 
 
+def words_dict(words_set):
+    """words_set - lists of words
+    count number of known words in movie description
+    Known word are the 10% percent of incident words in the data set
+    @return list of first 10% highest words in the data set"""
+    # print(words_set[:51])
+    words_amounts = dict()
+    for i in range(len(words_set)):
+        try:
+            # print("i=", i, ":", words_set[i])
+            sentence = words_set[i].split(' ')
+            for j in range(len(sentence)):
+                word = sentence[j].lower()
+                if word in words_amounts:
+                    words_amounts[word] += 1
+                else:
+                    words_amounts[word] = 1
+        except:
+            pass
+    res = sorted(words_amounts, key=words_amounts.get, reverse=True)[:1000]
+    return res
+
+
 def load_data(csv_file):
     """
     get csv file path (training or test set)
-    make all preproccicing
+    make all preproccecing
     return pandas data frame
     :param csv_file:
     :return:
@@ -68,15 +93,22 @@ def load_data(csv_file):
                           'crew': literal_converter_crew
                           }
     df = pd.read_csv(csv_file, converters=columns_to_convert)
+    words_dict(df.overview.dropna())
     id_list = ['belongs_to_collection', 'genres', 'production_companies', 'keywords']
-    iso_list = ['production_countries', 'spoken_languages']
-    crew_list = ['cast', 'crew']
+
     for colname in id_list:
         df['id_' + str(colname)] = [pd.json_normalize(c)['id'].to_list() for c in df[colname]]
-    # for colname in id_list:
-    #     df['id_' + str(colname)] = [pd.json_normalize(c)['id'].to_list() for c in df[colname]]
-    # for colname in id_list:
-    #     df['id_' + str(colname)] = [pd.json_normalize(c)['id'].to_list() for c in df[colname]]
+    df['id_countries'] = [pd.json_normalize(c)['iso_3166_1'].to_list() for c in df['production_countries']]
+    df['id_lan'] = [pd.json_normalize(c)['iso_639_1'].to_list() for c in df['spoken_languages']]
+    df['cast_names'] = [pd.json_normalize(c)['name'].to_list() for c in df['cast']]
+    df['crew_names'] = [pd.json_normalize(c)['name'].to_list() for c in df['crew']]
+
+    df['com_website'] = df.homepage.apply(lambda x: 1 if re.match(r".*com.*", str(x)) else 0)
+    df['title_len'] = df.original_title.apply(lambda x: len(str(x)))
+    df['pop_words'] = df.
+
+    print(sum(df['title_len']))
+
 
     # df = pd.get_dummies(df, columns=['original_language'])
 
@@ -88,6 +120,15 @@ def basic_load_data(csv_file):
     return df[['budget', 'vote_count', 'runtime']], df['revenue'], df['vote_average']
 
 
+def cor_mat(X):
+    df = pd.DataFrame(X)
+    corrMatrix = df.corr()
+    sn.heatmap(corrMatrix, annot=True)
+    plt.show()
+    plt.savefig("../Figures/corr_mat.png")
+
 
 if __name__ == '__main__':
     X = load_data("../Data/training_set.csv")
+    # cor_mat(X[['budget', 'vote_count', "runtime"]])
+    # cor_mat(pd.read_csv("../Data/movies_dataset.csv"))
