@@ -23,7 +23,7 @@ def literal_converter_crew(val):
 
 def load_data(csv_file):
     """
-    get csv file path
+    get csv file path (training or test set)
     make all preproccicing
     return pandas data frame
     :param csv_file:
@@ -48,9 +48,14 @@ def load_data(csv_file):
     #     df['id_' + str(colname)] = [pd.json_normalize(c)['id'].to_list() for c in df[colname]]
     # for colname in id_list:
     #     df['id_' + str(colname)] = [pd.json_normalize(c)['id'].to_list() for c in df[colname]]
+
+    df = pd.get_dummies(df, columns=['original_language'])
+
     columns_to_drop = ["id", "belongs_to_collection", "genres", "homepage", "original_language", "original_title", "overview",
             "production_companies", "production_countries", "spoken_languages", "status", "tagline", "title",
             "keywords", "cast", "crew"]
+
+
 
     return df.drop(columns_to_drop, axis=1)
 
