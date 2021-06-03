@@ -5,6 +5,8 @@ from ast import literal_eval
 import seaborn as sn
 import matplotlib.pyplot as plt
 import re
+import pickle
+
 
 def split_data(filename):
     """
@@ -52,7 +54,7 @@ def columns_to_drop():
             "keywords", "cast", "crew"]
 
 
-def words_dict(words_set):
+def create_pop_words_list(words_set):
     """words_set - lists of words
     count number of known words in movie description
     Known word are the 10% percent of incident words in the data set
@@ -71,7 +73,29 @@ def words_dict(words_set):
                     words_amounts[word] = 1
         except:
             pass
-    res = sorted(words_amounts, key=words_amounts.get, reverse=True)[:1000]
+    pop_words = sorted(words_amounts, key=words_amounts.get, reverse=True)[:1000]
+    outfile = open("../Data/pop_words.bi", 'wb')
+    pickle.dump(obj=pop_words, file=outfile)
+    outfile.close()
+
+
+def words_dict(words_set):
+    infile = open("../Data/pop_words.bi", 'rb')
+    pop_words = pickle.load(infile)
+    infile.close()
+
+    res = []
+    for i in range(len(words_set)):
+        l = []
+        try:
+            sentence = words_set[i].split(' ')
+            for j in range(len(sentence)):
+                word = sentence[j].lower()
+                if word in pop_words:
+                    l.append(word)
+        except:
+            pass
+        res.append(l)
     return res
 
 
@@ -93,7 +117,7 @@ def load_data(csv_file):
                           'crew': literal_converter_crew
                           }
     df = pd.read_csv(csv_file, converters=columns_to_convert)
-    words_dict(df.overview.dropna())
+
     id_list = ['belongs_to_collection', 'genres', 'production_companies', 'keywords']
 
     for colname in id_list:
@@ -105,9 +129,9 @@ def load_data(csv_file):
 
     df['com_website'] = df.homepage.apply(lambda x: 1 if re.match(r".*com.*", str(x)) else 0)
     df['title_len'] = df.original_title.apply(lambda x: len(str(x)))
-    df['pop_words'] = df.
-
-    print(sum(df['title_len']))
+    # create_pop_words_list(df.overview) # Need to run only once
+    df['pop_words'] = words_dict(df.overview)
+    print(df['pop_words'])
 
 
     # df = pd.get_dummies(df, columns=['original_language'])
@@ -119,13 +143,6 @@ def basic_load_data(csv_file):
     df = pd.read_csv(csv_file).dropna()
     return df[['budget', 'vote_count', 'runtime']], df['revenue'], df['vote_average']
 
-
-def cor_mat(X):
-    df = pd.DataFrame(X)
-    corrMatrix = df.corr()
-    sn.heatmap(corrMatrix, annot=True)
-    plt.show()
-    plt.savefig("../Figures/corr_mat.png")
 
 
 if __name__ == '__main__':

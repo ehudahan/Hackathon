@@ -1,5 +1,5 @@
 from regression_class import *
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Lasso
 import pickle
 from regression import predict
 import plotly.graph_objects as go
@@ -14,46 +14,62 @@ def load_y(csv_file, colname):
 
 def plot_rmse():
     # Plot rmse for increasing amount of samples
-    results = []
+    results_lin = []
+    results_lasso = []
     for i in range(1, 101):
         linear_model = LinearRegression()
+        lasso_model = Lasso(alpha=1.0)
         X, y_rev, y_votes = basic_load_data("../Data/training_set.csv")
         n = max(round(X.shape[0] * (i / 100)), 1)
         linear_model.fit(X[:n], y_rev[:n])
+        lasso_model.fit(X[:n], y_rev[:n])
 
         X_test, y_test_rev, y_test_votes = basic_load_data("../Data/test_set.csv")
-        y_pred = linear_model.predict(X_test)
-        results.append(rmse(y_test_rev, y_pred))
+        results_lin.append(rmse(y_test_rev, linear_model.predict(X_test)))
+        results_lasso.append(rmse(y_test_rev, lasso_model.predict(X_test)))
 
-    fig = go.Figure(go.Scatter(x=list(range(1, len(results) + 1)), y=results, mode="markers"),
+    fig = go.Figure(go.Scatter(x=list(range(1, len(results_lin) + 1)), y=results_lin, mode="markers"),
                     layout=go.Layout(title="Model Evaluation Over Increasing Portions Of Training Set",
                                      xaxis=dict(title="Percentage of Training Set"),
                                      yaxis=dict(title="MSE Over Test Set")))
-    fig.write_image("../Figures/mse.over.training.percentage.png")
+    fig.write_image("../Figures/mse.over.training.percentage.lin.png")
+
+    fig = go.Figure(go.Scatter(x=list(range(1, len(results_lasso) + 1)), y=results_lin, mode="markers"),
+                    layout=go.Layout(title="Model Evaluation Over Increasing Portions Of Training Set",
+                                     xaxis=dict(title="Percentage of Training Set"),
+                                     yaxis=dict(title="MSE Over Test Set")))
+    fig.write_image("../Figures/mse.over.training.percentage.lasso.png")
 
 
 def init_our_model():
     linear_model_revenue = LinearRegression()
     linear_model_votes = LinearRegression()
+    lasso_model_revenue = Lasso(alpha=1.0)
 
     # split_data("../Data/movies_dataset.csv")
     # X = load_data("../Data/training_set.csv")
     X, y_rev, y_votes = basic_load_data("../Data/training_set.csv")
+    # cor_mat(X[['budget', 'vote_count', "runtime"]])
+    # cor_mat(pd.read_csv("../Data/movies_dataset.csv"))
+
 
     # y = load_y("../Data/training_set.csv", 'revenue')
     linear_model_revenue.fit(X, y_rev)
     print("revenue prediction:")
     print(linear_model_revenue.predict(basic_load_data("../Data/test_set.csv")[0]))
+    outfile = open("../Data/our_model_revenue.bi", 'wb')
+    pickle.dump(obj=linear_model_revenue, file=outfile)
+    outfile.close()
 
     linear_model_votes.fit(X, y_votes)
     print("votes prediction:")
     print(linear_model_votes.predict(basic_load_data("../Data/test_set.csv")[0]))
+    outfile = open("../Data/our_model_votes.bi", 'wb')
+    pickle.dump(obj=linear_model_votes, file=outfile)
+    outfile.close()
 
     # y = load_y("../Data/training_set.csv", 'vote_average')
     # linear_model_votes.fit(X, y_votes)
-    outfile = open("../Data/our_model_revenue.bi", 'wb')
-    pickle.dump(obj=linear_model_revenue, file=outfile)
-    outfile.close()
     # plot_singular_values(X)
     # resample with replacement each row
     # n_boots = 10
@@ -76,7 +92,16 @@ def init_our_model():
     #     # y_pred_temp = linear_model.predict(basic_load_data("../Data/test_set.csv"))
     #     # linear_model.coef_ = np.mean(weights[:i, :])
     #
+    lasso_model_revenue.fit(X, y_rev)
     return linear_model_revenue
+
+
+def cor_mat(X):
+    df = pd.DataFrame(X)
+    corrMatrix = df.corr()
+    sn.heatmap(corrMatrix, annot=True)
+    plt.show()
+    plt.savefig("../Figures/corr_mat.png")
 
 
 def rmse(y, y_pred):
@@ -113,7 +138,7 @@ def feature_evaluation(X, y):
 
 if __name__ == '__main__':
     plot_rmse()
-    model_revenue = init_our_model()
+    # init_our_model()
     # X = load_data("../Data/test_set.csv")
     # y = load_y("../Data/test_set.csv", "revenue")
 
