@@ -64,14 +64,23 @@ class Reg():
 
 
 if __name__ == '__main__':
-    df = pd.read_csv("../Data/training_set.csv", converters={'belongs_to_collection': literal_converter,
-                                                             'genres': literal_converter})
+    columns_to_convert = {'belongs_to_collection': literal_converter,
+                                                             'genres': literal_converter,
+                                                             'production_companies': literal_converter,
+                                                             'production_countries': literal_converter,
+                                                             'spoken_languages': literal_converter,
+                                                             'keywords': literal_converter,
+                                                             'cast': literal_converter,
+                                                             'crew' : literal_converter}
+    df = pd.read_csv("../Data/training_set.csv", converters=columns_to_convert)
     # t = [list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection'][:20]]
     df['id_collection'] = pd.DataFrame([list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection']])
     df['is_in_collection'] = df['id_collection'].notna().astype('int')
 
     df['id_genres'] = [pd.json_normalize(c)['id'].to_list() for c in df['genres']]
     print(df['id_genres'])
+    for colname in columns_to_convert.keys():
+        df[str('id_' + colname)] = [pd.json_normalize(c)[colname].to_list() for c in df[columns_to_convert[colname]]]
 
 
 
