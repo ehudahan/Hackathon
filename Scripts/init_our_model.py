@@ -60,9 +60,12 @@ def init_our_model():
     # lasso_model_revenue = Lasso(alpha=1.0)
 
     # split_data("../Data/movies_dataset.csv")
-    X = load_data("../Data/training_set.csv")
-    print(X.columns)
-    y_rev = X['revenue']
+
+    X = pd.read_csv("../Data/Data_after_preproccecing.csv")
+    X = X[:100]
+    print(X[pd.isna(X)])
+    # print(X.columns)
+    y_rev = X['revenue'].fillna(0)
     y_votes = X['vote_average']
     X = X.drop(['revenue', 'vote_average'], axis=1)
     # y_votes = pd.read_csv("../Data/training_set.csv")['vote_average']
@@ -156,7 +159,10 @@ def feature_evaluation(X, y):
         fig.write_image("../Figures/pearson.correlation.%s.png" % f)
 
 
+
+
 if __name__ == '__main__':
+    # load_data("../Data/training_set.csv", True)
     # plot_rmse()
     init_our_model()
     # X = load_data("../Data/test_set.csv")
