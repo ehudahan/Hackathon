@@ -12,7 +12,15 @@ def load_data(X):
     :param csv_file:
     :return:
     """
-    # df = pd.read_csv(csv_file)
+    df = pd.read_csv("../Data/training_set.csv", converters={'belongs_to_collection': literal_converter})
+    # t = [list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection'][:20]]
+    df['id_collection'] = pd.DataFrame([list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection']])
+    df['is_in_collection'] = df['id_collection'].notna().astype('int')
+    # df['is_in_collection'] =
+    print(df.is_in_collection)
+
+    df = df.drop(['belongs_to_collection'])
+
     X = pd.concat([X.drop(['belongs_to_collection'], axis=1),
                X.belongs_to_collection.apply(X.Series)], axis=1)
     X.drop(["id", "belongs_to_collection", "genre", "homepage", "original_language", "original_title", "overview",
@@ -38,7 +46,7 @@ def load_data(X):
 
 def literal_converter(val):
     # replace first val with '' or some other null identifier if required
-    return {'id': "NaN"} if val == "" else literal_eval(val)
+    return {'id': pd.NA} if (val == "") or (val == "[]") else literal_eval(val)
 
 
 class Reg():
@@ -55,15 +63,17 @@ class Reg():
         pass
 
 
-
-
 if __name__ == '__main__':
-    df = pd.read_csv("Data\\training_set.csv", converters={'belongs_to_collection': literal_converter})
+    df = pd.read_csv("../Data/training_set.csv", converters={'belongs_to_collection': literal_converter,
+                                                             'genres': literal_converter})
     # t = [list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection'][:20]]
-    t = pd.DataFrame([list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection']])
-    # print(t)
-    df = pd.concat(df, t)
-    print(df[:50])
+    df['id_collection'] = pd.DataFrame([list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection']])
+    df['is_in_collection'] = df['id_collection'].notna().astype('int')
+
+    df['id_genres'] = [pd.json_normalize(c)['id'].to_list() for c in df['genres']]
+    print(df['id_genres'])
+
+
 
 
 
@@ -78,9 +88,9 @@ if __name__ == '__main__':
     # pd.json_normalize(genre) for genre in df.genres
     # json_normalize(x)) for x in df['json']
         # .drop(columns=['genres'])
-    y_rank = df["vote_average"]
-    y_revenue = df["revenue"]
-    X = df.drop(["revenue", "vote_average"], axis=1)
-    new_X = load_data(X)
-    print(new_X.head)
+    # y_rank = df["vote_average"]
+    # y_revenue = df["revenue"]
+    # X = df.drop(["revenue", "vote_average"], axis=1)
+    # new_X = load_data(X)
+    # print(new_X.head)
 
