@@ -1,10 +1,13 @@
-from regression_class import *
+from parsing import *
 from sklearn.linear_model import LinearRegression, Lasso
 import pickle
 from regression import predict
 import plotly.graph_objects as go
 import numpy as np
 import plotly.express as px
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+import seaborn as sn
 import matplotlib.pyplot as plt
 
 
@@ -41,29 +44,46 @@ def plot_rmse():
     fig.write_image("../Figures/mse.over.training.percentage.lasso.png")
 
 
+def filter_by_corr_mat(X, y):
+    """
+    :param X: data frame
+    :param y: vector
+    :return: return list of choosen variables
+    """
+    mat = pd.concat([X, y], axis=1).corr()
+    # print(mat.columns[mat['revenue'] > 0.2])
+
+
 def init_our_model():
     linear_model_revenue = LinearRegression()
     linear_model_votes = LinearRegression()
-    lasso_model_revenue = Lasso(alpha=1.0)
+    # lasso_model_revenue = Lasso(alpha=1.0)
 
     # split_data("../Data/movies_dataset.csv")
-    # X = load_data("../Data/training_set.csv")
-    X, y_rev, y_votes = basic_load_data("../Data/training_set.csv")
+    X = load_data("../Data/training_set.csv")
+    print(X.columns)
+    y_rev = X['revenue']
+    y_votes = X['vote_average']
+    X = X.drop(['revenue', 'vote_average'], axis=1)
+    # y_votes = pd.read_csv("../Data/training_set.csv")['vote_average']
+    # X_filtered = filter_by_corr_mat(X, y)
+    # cor_mat(X_filtered)
+
     # cor_mat(X[['budget', 'vote_count', "runtime"]])
     # cor_mat(pd.read_csv("../Data/movies_dataset.csv"))
 
 
     # y = load_y("../Data/training_set.csv", 'revenue')
     linear_model_revenue.fit(X, y_rev)
-    print("revenue prediction:")
-    print(linear_model_revenue.predict(basic_load_data("../Data/test_set.csv")[0]))
+    # print("revenue prediction:")
+    # print(linear_model_revenue.predict(basic_load_data("../Data/test_set.csv")[0]))
     outfile = open("../Data/our_model_revenue.bi", 'wb')
     pickle.dump(obj=linear_model_revenue, file=outfile)
     outfile.close()
-
+    #
     linear_model_votes.fit(X, y_votes)
-    print("votes prediction:")
-    print(linear_model_votes.predict(basic_load_data("../Data/test_set.csv")[0]))
+    # print("votes prediction:")
+    # print(linear_model_votes.predict(basic_load_data("../Data/test_set.csv")[0]))
     outfile = open("../Data/our_model_votes.bi", 'wb')
     pickle.dump(obj=linear_model_votes, file=outfile)
     outfile.close()
@@ -92,14 +112,14 @@ def init_our_model():
     #     # y_pred_temp = linear_model.predict(basic_load_data("../Data/test_set.csv"))
     #     # linear_model.coef_ = np.mean(weights[:i, :])
     #
-    lasso_model_revenue.fit(X, y_rev)
-    return linear_model_revenue
+    # lasso_model_revenue.fit(X, y_rev)
+    # return linear_model_revenue
 
 
 def cor_mat(X):
     df = pd.DataFrame(X)
     corrMatrix = df.corr()
-    sn.heatmap(corrMatrix, annot=True)
+    sn.heatmap(corrMatrix[abs(corrMatrix) > 0.2], annot=True)
     plt.show()
     plt.savefig("../Figures/corr_mat.png")
 
@@ -137,8 +157,8 @@ def feature_evaluation(X, y):
 
 
 if __name__ == '__main__':
-    plot_rmse()
-    # init_our_model()
+    # plot_rmse()
+    init_our_model()
     # X = load_data("../Data/test_set.csv")
     # y = load_y("../Data/test_set.csv", "revenue")
 

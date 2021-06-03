@@ -4,7 +4,7 @@
 #
 ################################################
 
-from regression_class import *
+from parsing import *
 import pickle
 
 
