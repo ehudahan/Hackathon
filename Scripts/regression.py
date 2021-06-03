@@ -16,7 +16,10 @@ def predict(csv_file):
     :return: a tuple - (a python list with the movies revenues, a python list with the movies avg_votes)
     """
     X = load_data(csv_file)
-    return pickle.load("our_model.bin").predict(X)
+    infile = open("../Data/our_model_revenue.bi", 'rb')
+    model = pickle.load(infile)
+    infile.close()
+    return model.predict(X)
 
 
 def predict_revenue(w):
