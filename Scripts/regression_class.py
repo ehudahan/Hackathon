@@ -4,6 +4,29 @@ from sklearn.linear_model import LinearRegression
 from ast import literal_eval
 
 
+def split_data(filename):
+    """
+    Load movies prices dataset split the data
+    :param filename: Path to movies prices dataset
+    :return: Training_set = 3/4, Test_set = 1/4, with respect to the revenue field
+    """
+    df = pd.read_csv(filename).drop_duplicates()
+
+    df_sorted_by_revenue_value = df.sort_values(by=['revenue'])
+
+    # splitting the data : training_set = 3/4, test_set = 1/4, with respect to the revenue field
+    test_set = df_sorted_by_revenue_value[::4]
+    test_rows = test_set["id"]
+    training_set = df_sorted_by_revenue_value.drop(index=test_rows - 1)
+
+    # adding mean values of the following fields: original_language,vote_average,vote_count,production_companies,
+    pd.DataFrame.to_csv(training_set)
+
+    # write CSVs of the training set and test set
+    training_set.to_csv('../Data/training_set.csv', header=True, encoding='utf-8', index=False)
+    test_set.to_csv('../Data/test_set.csv', header=True, encoding='utf-8', index=False)
+
+
 def literal_converter_id(val):
     # replace first val with '' or some other null identifier if required
     return {'id': pd.NA} if (val == "") or (val == "[]") else literal_eval(val)
@@ -49,17 +72,14 @@ def load_data(csv_file):
     # for colname in id_list:
     #     df['id_' + str(colname)] = [pd.json_normalize(c)['id'].to_list() for c in df[colname]]
 
-    df = pd.get_dummies(df, columns=['original_language'])
+    # df = pd.get_dummies(df, columns=['original_language'])
 
     columns_to_drop = ["id", "belongs_to_collection", "genres", "homepage", "original_language", "original_title", "overview",
-            "production_companies", "production_countries", "spoken_languages", "status", "tagline", "title",
+            "production_companies", "release_date", "production_countries", "spoken_languages", "status", "tagline", "title",
             "keywords", "cast", "crew"]
-
-
 
     return df.drop(columns_to_drop, axis=1)
 
 
 if __name__ == '__main__':
-    load_data("../Data/training_set.csv")
-
+    X = load_data("../Data/training_set.csv")
