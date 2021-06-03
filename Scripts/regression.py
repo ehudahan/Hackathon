@@ -16,4 +16,6 @@ def predict(csv_file):
     """
     X = preproccecing(csv_file)
     Reg.predict(X, y)
+    # reg = LinearRegression().fit(X, y)
+
     pass

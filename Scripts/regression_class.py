@@ -36,6 +36,10 @@ def load_data(X):
 # df2 = pd.json_normalize(df.belongs_to_collection)
 # print(df2.head())
 
+def literal_converter(val):
+    # replace first val with '' or some other null identifier if required
+    return {'id': "NaN"} if val == "" else literal_eval(val)
+
 
 class Reg():
     """
@@ -51,17 +55,23 @@ class Reg():
         pass
 
 
+
+
 if __name__ == '__main__':
-    df = pd.read_csv("Data\\training_set.csv", converters={'genres': literal_eval})
-    # df.genre.to_json()
-    # y = pd.json_normalize(df.genres)
-    # df = df.join(
+    df = pd.read_csv("Data\\training_set.csv", converters={'belongs_to_collection': literal_converter})
+    # t = [list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection'][:20]]
+    t = pd.DataFrame([list(pd.json_normalize(c)['id'].values) for c in df['belongs_to_collection']])
+    # print(t)
+    df = pd.concat(df, t)
+    print(df[:50])
+
+
+
     # new_df = pd.concat([pd.DataFrame(pd.json_normalize(g)) for g in df['genres']], ignore_index=True)
     # df2 = df[:3]
-    t = [pd.json_normalize(g)['name'].values for g in df['genres'][:5]]
-    # pd.DataFrame.to_csv("filters.csv")
+    # t = list(pd.json_normalize(g)['name'].values) for g in df['genres'][:6]]
     # ['name'].values
-    print(t)
+
     # df = df.join(pd.json_normalize(df.Information))
 
     # df.drop(columns=['Information'], inplace=True)
