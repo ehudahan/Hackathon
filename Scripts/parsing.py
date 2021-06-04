@@ -125,52 +125,55 @@ def add_dummies(df):
 
 def fill_missing(df, avg):
     for col in avg:
-        for i in range(len(df)):
-            if df[col][i] == 0:
-                df[col][i] = avg[col]
+        df[col].replace(to_replace=0, value=avg[col])
 
 
 def find_avg(df):
     """ find avg or most common item in column or """
     avg = dict()
 
-    l = ['revenue', 'budget', 'vote_average', 'vote_count', 'runtime']
+    l = ['budget', 'vote_count', 'runtime', 'month', 'year']
 
     for i in l:
-        avg[i] = ((df[df[i] != 0])[i].mean())
+        avg[i] = ((df[df[i] != 0])[i].mean(skipna=True))
         if i != 'vote_average':
             avg[i] = int(avg[i])
 
-    for kw in ['month', 'year']:
-        avg[kw] = int(((df[df[kw] != 0])[kw].mean()))
+    # for kw in ['month', 'year']:
+    #     avg[kw] = int(((df[df[kw] != 0])[kw].mean(skipna=True)))
     outfile = open("../Data/avg_dict.bi", 'wb')
     pickle.dump(obj=avg, file=outfile)
     outfile.close()
 
 
-def zero_nan_carring(df, load_dict=True):
+def filter_training_data(X):
+    """"
+    filter not relevant columns for training
+    """
+    X = X[X['revenue'] != 0]
+    X = X[X['budget'] != 0]
+    return X
+
+
+def zero_nan_carring(df, write_dict):
     """
     load the avg dictionaty and fill the values
     :param df:
     :return: df
     """
-    if not load_dict:
+    if write_dict:
         find_avg(df)
     infile = open("../Data/avg_dict.bi", 'rb')
     avg_dict = pickle.load(infile)
     infile.close()
 
-    df.fillna(0)
+    df = df.fillna(0)
 
-    for col in avg_dict:
-        for i in range(len(df)):
-            if df[col][i] == 0 or df[col][i] == "":
-                df[col][i] = avg_dict[col]
+    fill_missing(df, avg_dict)
     return df
 
 
-
-def load_data(csv_file, save_csv=False):
+def load_data(csv_file, train_run=False):
     """
     get csv file path
     make all preprocessing
@@ -187,13 +190,15 @@ def load_data(csv_file, save_csv=False):
                                            'cast': literal_converter_crew,
                                            'crew': literal_converter_crew
                                            })
+    if train_run:
+        df = filter_training_data(df)
     df = parse_jsons(df)
     df = add_dummies(df)
     df = time_variable(df)
-    df = zero_nan_carring(df, not save_csv)
+    df = zero_nan_carring(df, train_run)
 
     df = df.drop(COLS_DROP + COLS_DROP2, axis=1)
-    if save_csv:
+    if train_run:
         df.to_csv("../Data/Data_after_preproccecing.csv")
 
     return df

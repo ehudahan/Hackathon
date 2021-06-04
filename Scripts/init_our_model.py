@@ -54,20 +54,40 @@ def filter_by_corr_mat(X, y):
     # print(mat.columns[mat['revenue'] > 0.2])
 
 
+def split_data_by_zero_rev(filename):
+    """
+    Load movies prices dataset split the data
+    :param filename: Path to movies prices dataset
+    :return: Training_set = 3/4, Test_set = 1/4, with respect to the revenue field
+    """
+    df = pd.read_csv(filename).drop_duplicates()
+    df0 = df[df['revenue'] == 0]
+    df1 = df[df['revenue'] != 0]
+    return df0, df1
+
+
+# def filter_training_data(X):
+#     """"
+#     filter not relevant columns for training
+#     """
+#     X = X[X['revenue'] != 0]
+#     X = X[X['budget'] != 0]
+#     return X
+
+
 def init_our_model():
-    linear_model_revenue = LinearRegression()
-    linear_model_votes = LinearRegression()
-    # lasso_model_revenue = Lasso(alpha=1.0)
-
-    # split_data("../Data/movies_dataset.csv")
-
     X = pd.read_csv("../Data/Data_after_preproccecing.csv")
-    X = X[:100]
-    print(X[pd.isna(X)])
-    # print(X.columns)
-    y_rev = X['revenue'].fillna(0)
+    # X = filter_training_data(X)
+    y_rev = X['revenue']
     y_votes = X['vote_average']
     X = X.drop(['revenue', 'vote_average'], axis=1)
+
+    model_list = [LinearRegression()] * 2
+    model_list[0].fit(X, y_rev)
+    model_list[1].fit(X, y_votes)
+
+    # y_votes = X['vote_average']
+
     # y_votes = pd.read_csv("../Data/training_set.csv")['vote_average']
     # X_filtered = filter_by_corr_mat(X, y)
     # cor_mat(X_filtered)
@@ -77,19 +97,19 @@ def init_our_model():
 
 
     # y = load_y("../Data/training_set.csv", 'revenue')
-    linear_model_revenue.fit(X, y_rev)
+    # linear_model_revenue.fit(X, y_rev)
     # print("revenue prediction:")
     # print(linear_model_revenue.predict(basic_load_data("../Data/test_set.csv")[0]))
-    outfile = open("../Data/our_model_revenue.bi", 'wb')
-    pickle.dump(obj=linear_model_revenue, file=outfile)
+    outfile = open("../Data/our_models.bi", 'wb')
+    pickle.dump(obj=model_list, file=outfile)
     outfile.close()
     #
-    linear_model_votes.fit(X, y_votes)
+    # linear_model_votes.fit(X, y_votes)
     # print("votes prediction:")
     # print(linear_model_votes.predict(basic_load_data("../Data/test_set.csv")[0]))
-    outfile = open("../Data/our_model_votes.bi", 'wb')
-    pickle.dump(obj=linear_model_votes, file=outfile)
-    outfile.close()
+    # outfile = open("../Data/our_model_votes.bi", 'wb')
+    # pickle.dump(obj=linear_model_votes, file=outfile)
+    # outfile.close()
 
     # y = load_y("../Data/training_set.csv", 'vote_average')
     # linear_model_votes.fit(X, y_votes)
@@ -162,7 +182,7 @@ def feature_evaluation(X, y):
 
 
 if __name__ == '__main__':
-    # load_data("../Data/training_set.csv", True)
+    load_data("../Data/training_set.csv", True)
     # plot_rmse()
     init_our_model()
     # X = load_data("../Data/test_set.csv")
