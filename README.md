@@ -1,10 +1,10 @@
-# Hackathon
+Welcome to our cool project for the Hackathon IML 2021 in HUJI. Our goal for this project was to predict the revenue and ranking of movies. 
 
-These awasome project is our work for Hackathon IML 2021 in HUJI.
+We have organized the project into the following folders:
 
-Please keep things in place so we dont have mass.
+- **Data**: This folder contains all the data files in CSV format that we have used to train and test our models.
+- **Docs**: This folder contains all the relevant text files such as the README and the license file.
+- **Figures**: This folder contains all the figures used in the project. We have also included the functions used to generate these figures.
+- **Script**: This folder contains all the scripts for our project. The `regression.py` file includes the `predict` function, which is the API function required to predict the revenues and votes of movies given a CSV file. The `regression_class.py` file contains the pre-processing code, the definition of the machine learning model, and the saving of the model object as a binary file. 
 
-Data - here we put all our data (csv files).
-Docs - text files. 
-Figures - All figures needs to have file/function to create them *exactly* how they look. so if we want to regenarate figure, it woudnt take time to enter the parameter and title etc.
-Script - all our scripts
+Please keep the folders and files in their respective places to ensure that everything runs smoothly. Thank you for visiting our project!
