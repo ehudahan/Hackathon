@@ -1,3 +1,5 @@
+# Predicting Movie Revenue and Ranking: A Machine Learning Hackathon Project
+
 Welcome to our cool project for the Hackathon IML 2021 in HUJI. Our goal for this project was to predict the revenue and ranking of movies. 
 
 We have organized the project into the following folders:
